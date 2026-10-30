@@ -18,37 +18,37 @@
 
 ## 安装
 
-从 GitHub 装（把 `<owner>` 换成你的 GitHub 用户名 / 组织名）：
+从 GitHub 装（把 `ph1996-cn` 换成你的 GitHub 用户名 / 组织名）：
 
 ```bash
-dsh plugin add github:<owner>/dsh-BMAD-Method
+dsh plugin add github:ph1996-cn/dsh-BMAD-Method
 ```
 
-> 仓库里**没有任何本机绝对路径**：BMAD 主目录从 `$DSH_HOME`（缺省 `~/.dsh`）推导，profile 补丁靠扫 `~/.dsh/profiles/*/` 里 `dsh.profile.bundles` 认领本插件的那个，补丁路径可用 `patchPath` 配置覆盖。发布前只需把下面几处的 `<owner>` 换成自己的账号。
+> 仓库里**没有任何本机绝对路径**：BMAD 主目录从 `$DSH_HOME`（缺省 `~/.dsh`）推导，profile 补丁靠扫 `~/.dsh/profiles/*/` 里 `dsh.profile.bundles` 认领本插件的那个，补丁路径可用 `patchPath` 配置覆盖。发布前只需把下面几处的 `ph1996-cn` 换成自己的账号。
 
 或在 dsh 里让 agent 调 `plugin_manager`：
 
 ```
-plugin_manager({ action: "install_bundle", target: "github:<owner>/dsh-BMAD-Method" })
+plugin_manager({ action: "install_bundle", target: "github:ph1996-cn/dsh-BMAD-Method" })
 ```
 
 也可以钉到某个 tag / commit（可复现）：
 
 ```
-plugin_manager({ action: "install_bundle", target: "github:<owner>/dsh-BMAD-Method#v0.1.0" })
+plugin_manager({ action: "install_bundle", target: "github:ph1996-cn/dsh-BMAD-Method#v0.1.0" })
 ```
 
 开发调试用本地目录：
 
 ```bash
-git clone https://github.com/<owner>/dsh-BMAD-Method.git
+git clone https://github.com/ph1996-cn/dsh-BMAD-Method.git
 dsh plugin add ./dsh-BMAD-Method
 ```
 
 装完会把 bundle 记进当前 profile 的 `package.json`：
 
 ```jsonc
-"dsh-BMAD-Method": "github:<owner>/dsh-BMAD-Method",   // dependencies
+"dsh-BMAD-Method": "github:ph1996-cn/dsh-BMAD-Method",   // dependencies
 "dsh": { "profile": { "bundles": [ ..., "dsh-BMAD-Method" ] } }
 ```
 
