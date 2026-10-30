@@ -560,22 +560,28 @@ test('插件页模块开关接口：GET 列模块，POST 写 disabled: true 并�
   }
 })
 
-test('插件页「安装 BMAD」接口：新用户第一次打开卡片就能把 BMAD 装好', async () => {
+test('打开卡片就自举：GET /modules 自己把 BMAD 装好，用户不用点任何东西', async () => {
   const box = sandbox()
   try {
     const tools = controller(box.patchPath)
     const route = tools.routes.find((r) => r.path === '/api/bmad-method')
-    const install = await callApi(route, { method: 'POST', url: '/api/bmad-method/install' })
-    assert.equal(install.status, 200)
-    assert.equal(install.body.ok, true, '装好（或本来就装好）要返回 ok')
-    assert.ok(Array.isArray(install.body.modules), '装完要回传最新模块列表，卡片才好刷新')
-    assert.ok(
-      install.body.modules.some((m) => m.code === 'bmm' && m.installed),
-      '装完 bmm 应显示为已安装',
-    )
-    assert.ok(
-      install.body.notes?.[0]?.includes('已就绪'),
-      `应给出可读的结果说明，实际：${JSON.stringify(install.body.notes)}`,
+    // 第一次打开卡片：本机还没有 BMAD，GET 之后应该已经装好
+    const first = await callApi(route, { method: 'GET', url: '/api/bmad-method/modules' })
+    assert.equal(first.status, 200)
+    assert.equal(first.body.ok, true)
+    assert.ok(Array.isArray(first.body.modules) && first.body.modules.length > 0)
+    for (const code of ['bmm', 'core', 'tea', 'gds']) {
+      assert.ok(
+        first.body.modules.some((m) => m.code === code && m.installed),
+        `${code} 打开卡片后应已是已安装，实际：${JSON.stringify(first.body.modules.map((m) => [m.code, m.installed]))}`,
+      )
+    }
+    // 已经装好时再打开不该有任何副作用，也不该变慢
+    const second = await callApi(route, { method: 'GET', url: '/api/bmad-method/modules' })
+    assert.equal(second.status, 200)
+    assert.deepEqual(
+      second.body.modules.map((m) => [m.code, m.installed]),
+      first.body.modules.map((m) => [m.code, m.installed]),
     )
   } finally {
     box.cleanup()

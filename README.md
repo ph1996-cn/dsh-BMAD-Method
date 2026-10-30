@@ -230,7 +230,7 @@ BMAD 装在**全局主目录**，工作区不落 `_bmad/`。这些路径都由�
 
 ## 零配置自举
 
-**装完插件什么都不用做，BMAD 已经在包里。** 第一次调用任一 BMAD 工具（或第一次打开设置卡片点「安装 BMAD」）时，插件会检查 `$DSH_HOME/bmad-method/_bmad/`：
+**装完插件什么都不用做，BMAD 已经在包里。** 第一次调用任一 BMAD 工具，或者**第一次打开设置卡片**（卡片加载时自己触发自举），插件就会检查 `$DSH_HOME/bmad-method/_bmad/`：
 
 - 不存在 → 把包内 `bmad-home/_bmad/` 的运行时**直接铺过去**：7 个模块的配置、脚本、`custom/` 模板一次到位，**实测 46 毫秒**，不跑安装器、不联网。用户设置（用户名、语言、输出目录）在铺的时候写进每个模块的 config。
 - 已存在但缺了某个模块的 `_bmad/<code>/` → 同样用模板补齐。
@@ -330,7 +330,7 @@ test/                    # node --test
 npm test        # node --test，12 个用例
 ```
 
-覆盖：工具注册、模块发现（已安装 + 可安装 + 内置 `core`/`bmm` + `deprecated`）、停用写 `disabled: true`、重复停用幂等、列表反映状态、重新启用移除该键、用户注释与既有条目不被破坏、`core` 不可停用、未装模块拒绝停用、写盘失败返回 `write-failed` 且原文件不变、更新命令组装（`--user-name` / 两个「简体中文」/`--output-folder _bmad-output`/`--no-shims`/`--modules` 含全部未废弃模块）、全局安装时工作区只有 `_bmad-output` 而无 `_bmad`/`.agent`、**全新环境自动自举**、**包内模板 46 毫秒铺好 7 个模块并把用户名写进三处 config**、**模块停用后它的 skill 不再列出而 `core` 的仍在**、插件页模块开关接口（GET/POST + 跨站 403）、「安装 BMAD」接口、Config 三个字段全部 `.volatile()`。
+覆盖：工具注册、模块发现（已安装 + 可安装 + 内置 `core`/`bmm` + `deprecated`）、停用写 `disabled: true`、重复停用幂等、列表反映状态、重新启用移除该键、用户注释与既有条目不被破坏、`core` 不可停用、未装模块拒绝停用、写盘失败返回 `write-failed` 且原文件不变、更新命令组装（`--user-name` / 两个「简体中文」/`--output-folder _bmad-output`/`--no-shims`/`--modules` 含全部未废弃模块）、全局安装时工作区只有 `_bmad-output` 而无 `_bmad`/`.agent`、**全新环境自动自举**、**包内模板 46 毫秒铺好 7 个模块并把用户名写进三处 config**、**模块停用后它的 skill 不再列出而 `core` 的仍在**、插件页模块开关接口（GET/POST + 跨站 403）、**打开卡片即自举**（GET 一次就把 7 个模块装好，不需要任何按钮）、Config 三个字段全部 `.volatile()`。
 端到端实测通过：全新 `DSH_HOME` 下第一次调 `bmad_modules_list`，**46 毫秒**铺好 7 个模块（`viaTemplate: true`），`core/config.yaml` / `bmm/config.yaml` / `config.user.toml` 都写进了用户名与「简体中文」，主目录只有 `_bmad/`、工作区只有 `_bmad-output`，provider 列出 90 个 skill；第二次调用版本一致直接跳过。测试里用 `DSH_BMAD_MINIMAL=1` 只装内置模块，保持离线可跑。
 
 ## 已知边界

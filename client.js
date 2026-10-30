@@ -90,16 +90,6 @@ window.__ModuleLoader__.load({
       return res.json()
     }
 
-    /** 新用户的第一件事：把 BMAD 本体装到全局主目录（插件自带的安装器，不用联网下载）。 */
-    async function apiInstall() {
-      const res = await fetch(`${API}/install`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: '{}',
-      })
-      return res.json()
-    }
-
     /**
      * 模块开关。dsh 插件页「包含的组件」里那 7 行标题全一样（dsh 只按包名取标题，
      * 同一个包的多行必然同名），分不出谁是谁 —— 所以按模块列名 + 开关放在这里。
@@ -109,7 +99,6 @@ window.__ModuleLoader__.load({
       const [mods, setMods] = React.useState(null)
       const [error, setError] = React.useState('')
       const [busy, setBusy] = React.useState('')
-      const [installing, setInstalling] = React.useState(false)
 
       React.useEffect(() => {
         let alive = true
@@ -139,20 +128,6 @@ window.__ModuleLoader__.load({
         }
       }
 
-      const install = async () => {
-        setInstalling(true)
-        setError('')
-        try {
-          const data = await apiInstall()
-          if (Array.isArray(data.modules)) setMods(data.modules)
-          if (!data.ok) setError((data.notes && data.notes[0]) || '安装失败')
-        } catch (e) {
-          setError(String(e?.message ?? e))
-        } finally {
-          setInstalling(false)
-        }
-      }
-
       const children = [
         React.createElement(
           'div',
@@ -165,33 +140,6 @@ window.__ModuleLoader__.load({
           ),
         ),
       ]
-
-      // 刚装好插件、本机还没有 BMAD 时，所有模块都是「未安装」——给一个明确的下一步，
-      // 否则用户只看到一排灰字，不知道要干什么。
-      const noneInstalled = (mods ?? []).length > 0 && (mods ?? []).every((m) => !m.installed)
-      if (noneInstalled) {
-        children.push(
-          React.createElement(
-            'div',
-            { style: { display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0 8px' }, key: 'install' },
-            React.createElement(
-              'div',
-              { style: { minWidth: 0, flex: 1 } },
-              React.createElement('div', { style: S.modName }, 'BMAD 还没装到本机'),
-              React.createElement(
-                'div',
-                { style: S.modDesc },
-                '装一次就好：用插件自带的安装器把七个模块铺到全局主目录，约一分钟，不用联网下载 bmad-method。',
-              ),
-            ),
-            React.createElement(
-              'button',
-              { style: S.btn, disabled: installing, onClick: install },
-              installing ? '正在安装…' : '安装 BMAD',
-            ),
-          ),
-        )
-      }
 
       if (mods === null && !error) {
         children.push(React.createElement('div', { style: S.note, key: 'loading' }, '正在读取模块…'))
