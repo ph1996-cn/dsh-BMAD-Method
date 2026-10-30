@@ -224,6 +224,18 @@ test('全新环境：第一次调 list 就用自带安装器把 BMAD 装好，�
     assert.ok(sample.content.length > 0, '应取到 skill 正文')
     assert.ok(!sample.content.includes('{project-root}/_bmad/'), '正文里的 _bmad 引用应改成本机绝对路径')
     assert.ok(sample.content.includes(`${home.replace(/\\/g, '/')}/_bmad/`), '应指向全局主目录的 _bmad')
+    // 占位符必须全部展开：留着字面量会让 skill 里的 uv run 命令直接报错退出（实测过）
+    const reviewSkill = listed2.candidates.find((c) => c.name === 'bmad-code-review')
+    assert.ok(reviewSkill, '应有 bmad-code-review')
+    const reviewBody = (await provider.get(reviewSkill, {})).content
+    assert.ok(!reviewBody.includes('{project-root}'), '正文不能残留 {project-root}')
+    assert.ok(!reviewBody.includes('{skill-root}'), '正文不能残留 {skill-root}')
+    const skillArg = reviewBody.match(/--skill (\S+)/)?.[1] ?? ''
+    assert.ok(skillArg && !skillArg.includes('{'), `--skill 要展开成真路径，实际：${skillArg}`)
+    assert.ok(
+      reviewBody.includes(`--project-root ${home.replace(/\\/g, '/')}`),
+      '--project-root 要给 BMAD 安装目录（脚本要拼 <root>/_bmad/）',
+    )
     assert.ok(
       listed.notes.some((n) => n.includes('首次使用') && n.includes('不联网下载')),
       listed.notes.join(' | '),
