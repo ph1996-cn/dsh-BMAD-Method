@@ -281,6 +281,26 @@ npm test                # 顺手验一遍
 
 插件自身走 dsh bundle 常规路径（`plugin_manager` 升级或 `npm update dsh-BMAD-Method`）。`package.json` 声明 `engines.dsh`（`>=0.2.0-rc.1 <0.3.0`）与 `engines.node`，装到不兼容的 dsh 上会被版本闸门拦下。
 
+### 更新插件本身：一条命令，不用卸载重装
+
+dsh 的 `install_bundle` 对已装的包会直接返回 `already-installed` 拒绝掉，**没有"更新"这个动作**。改代码后要么卸载重装，要么绕过去直接更新依赖 —— 后者一条命令：
+
+```powershell
+cd "$env:USERPROFILE\.dsh\profiles\desktop"
+pnpm update dsh-BMAD-Method      # 重新解析 github: 依赖，拿最新 commit
+```
+
+然后重启 dsh。（`pnpm add dsh-BMAD-Method@github:...` 不行 —— spec 没变，pnpm 按 lockfile 里的旧 commit 装，会静默什么都不干。）
+
+如果只是想边改边试，用开发模式更省事：
+
+```powershell
+# 装本地目录而不是 GitHub 版本
+dsh plugin add D:\path\to\dsh-BMAD-Method     # 或 plugin_manager install_bundle(target=<目录>)
+```
+
+link 安装下改完代码只需重启 dsh，不用重新装包。
+
 ## 目录结构
 
 ```
