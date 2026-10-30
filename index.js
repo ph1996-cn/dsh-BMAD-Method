@@ -183,6 +183,16 @@ async function handleApi(req, res, config) {
       sendJson(res, ok ? 200 : 409, { ...result, ...(await apiModules(config)), ok, toggleStatus: result.status })
       return
     }
+    if (req.method === 'POST' && action === 'install') {
+      // 新用户第一件事：把 BMAD 本体装到全局主目录（用插件自带的安装器，不联网下载 bmad-method）
+      const boot = await bootstrapBmad(config)
+      const payload = await apiModules(config)
+      const notes = boot?.error
+        ? [`BMAD 自举失败：${boot.error}`]
+        : ['BMAD 已就绪：模块文件在插件主目录，skill 由插件直接提供。']
+      sendJson(res, boot?.installed ? 200 : 500, { ...payload, ok: Boolean(boot?.installed), notes })
+      return
+    }
     sendJson(res, 404, { ok: false, error: `未知接口：${req.method} ${url}` })
   } catch (error) {
     try {

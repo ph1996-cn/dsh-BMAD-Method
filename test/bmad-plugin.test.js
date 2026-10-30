@@ -236,6 +236,12 @@ test('全新环境：第一次调 list 就用自带安装器把 BMAD 装好，�
       reviewBody.includes(`--project-root ${home.replace(/\\/g, '/')}`),
       '--project-root 要给 BMAD 安装目录（脚本要拼 <root>/_bmad/）',
     )
+    // 传了工作区就必须展开成绝对路径：只给 `.' 时模型会自己猜，实测把产物写进了 %TEMP%
+    const fakeCwd = 'D:/work/my-proj'
+    const withCwd = (await provider.get(reviewSkill, { cwd: fakeCwd })).content
+    assert.ok(withCwd.startsWith('> 运行环境'), '正文开头要有两个根的说明')
+    assert.ok(withCwd.includes(fakeCwd), '工作区路径要展开成绝对路径')
+    assert.ok(!withCwd.includes('{project-root}'), '带 cwd 时也不能残留 {project-root}')
     assert.ok(
       listed.notes.some((n) => n.includes('首次使用') && n.includes('不联网下载')),
       listed.notes.join(' | '),
@@ -521,6 +527,28 @@ test('插件页模块开关接口：GET 列模块，POST 写 disabled: true 并�
 
     const crossSite = await callApi(route, { headers: { origin: 'https://evil.example', host: '127.0.0.1:1' } })
     assert.equal(crossSite.status, 403, '跨站来源必须被拒绝')
+  } finally {
+    box.cleanup()
+  }
+})
+
+test('插件页「安装 BMAD」接口：新用户第一次打开卡片就能把 BMAD 装好', async () => {
+  const box = sandbox()
+  try {
+    const tools = controller(box.patchPath)
+    const route = tools.routes.find((r) => r.path === '/api/bmad-method')
+    const install = await callApi(route, { method: 'POST', url: '/api/bmad-method/install' })
+    assert.equal(install.status, 200)
+    assert.equal(install.body.ok, true, '装好（或本来就装好）要返回 ok')
+    assert.ok(Array.isArray(install.body.modules), '装完要回传最新模块列表，卡片才好刷新')
+    assert.ok(
+      install.body.modules.some((m) => m.code === 'bmm' && m.installed),
+      '装完 bmm 应显示为已安装',
+    )
+    assert.ok(
+      install.body.notes?.[0]?.includes('已就绪'),
+      `应给出可读的结果说明，实际：${JSON.stringify(install.body.notes)}`,
+    )
   } finally {
     box.cleanup()
   }
