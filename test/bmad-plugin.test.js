@@ -22,6 +22,7 @@ import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 import { apply, Config } from '../index.js'
+import { ensureInstalled, readInstalledModules } from '../lib/bmad.js'
 import { isModuleEnabled, moduleRows, resolvePatchPath } from '../lib/patch.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -243,7 +244,7 @@ test('全新环境：第一次调 list 就用自带安装器把 BMAD 装好，�
     assert.ok(withCwd.includes(fakeCwd), '工作区路径要展开成绝对路径')
     assert.ok(!withCwd.includes('{project-root}'), '带 cwd 时也不能残留 {project-root}')
     assert.ok(
-      listed.notes.some((n) => n.includes('首次使用') && n.includes('不联网下载')),
+      listed.notes.some((n) => n.includes('首次使用') && (n.includes('插件包自带') || n.includes('不联网下载'))),
       listed.notes.join(' | '),
     )
     assert.equal(existsSync(join(emptyDir, '_bmad')), false, '工作区不能落 _bmad/')
@@ -489,6 +490,33 @@ test('运行期没有 DSH_PROFILE_DIR：从 ~/.dsh/profiles 里扫出挂着本�
     }
     rmSync(home, { recursive: true, force: true })
   }
+})
+
+test('包内自带 BMAD 运行时：全新机器秒装七个模块，用户名/语言直接写进配置', async () => {
+  const home = mkdtempSync(join(tmpdir(), 'bmad-tpl-test-'))
+  const t0 = Date.now()
+  const result = await ensureInstalled({
+    bmadHome: home,
+    userName: '李雷',
+    language: '简体中文',
+    outputFolder: '_bmad-output',
+  })
+  const elapsed = Date.now() - t0
+  assert.equal(result.installed, true)
+  assert.equal(result.viaTemplate, true, '应该走包内模板，而不是跑安装器')
+  assert.ok(elapsed < 5000, `应该秒装，实际 ${elapsed}ms`)
+
+  const bmad = join(home, '_bmad')
+  assert.ok(existsSync(join(bmad, '_config', 'manifest.yaml')), 'manifest 要就位')
+  const codes = readInstalledModules(bmad).map((m) => m.code)
+  for (const code of ['core', 'bmm', 'bmb', 'cis', 'tea', 'gds', 'bmad-loop']) {
+    assert.ok(codes.includes(code), `应装好 ${code}，实际 ${codes.join(',')}`)
+  }
+  // 安装器原本负责把用户设置写进每个 config，模板这条路要自己补上
+  assert.match(readFileSync(join(bmad, 'core', 'config.yaml'), 'utf8'), /user_name:\s*李雷/)
+  assert.match(readFileSync(join(bmad, 'bmm', 'config.yaml'), 'utf8'), /user_name:\s*李雷/)
+  assert.match(readFileSync(join(bmad, 'config.user.toml'), 'utf8'), /user_name = "李雷"/)
+  assert.deepEqual(readdirSync(home), ['_bmad'], '主目录只该有 _bmad，不铺 IDE 目录')
 })
 
 test('插件页模块开关接口：GET 列模块，POST 写 disabled: true 并可读回', async () => {

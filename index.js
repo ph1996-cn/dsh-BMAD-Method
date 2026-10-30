@@ -451,7 +451,11 @@ async function runList(args, exec, config) {
 
   const notes = [...data.notes]
   if (boot.fresh && boot.installed) {
-    notes.push(`首次使用：已用插件自带的安装器把 BMAD 装到 ${boot.home}（不联网下载 bmad-method）。`)
+    notes.push(
+      boot.viaTemplate
+        ? `首次使用：已把插件包自带的 BMAD 运行时铺到 ${boot.home}（七个模块一次到位，不跑安装器、不联网）。`
+        : `首次使用：已用插件自带的安装器把 BMAD 装到 ${boot.home}（不联网下载 bmad-method）。`,
+    )
   }
   if (boot.skills?.removed > 0) {
     notes.push(`已清掉安装器铺的 ${boot.skills.removed} 个 .claude/skills（BMAD skill 由插件包自带，不落用户目录）。`)

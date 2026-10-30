@@ -17,6 +17,7 @@
     "client.js",
     "lib",
     "skills",
+    "bmad-home",
     "cordis.patch.yml",
     "locale",
     "icon.svg",

@@ -4,7 +4,7 @@
 
 插件不重写 BMAD 的任何 agent / workflow 逻辑，只做安装器的受控桥接层：dsh 侧负责交互、状态与开关持久化，模块文件仍由官方 `bmad-method` 安装器落盘。
 
-**BMAD 本体随插件携带**：`bmad-method` 是本插件的普通依赖。装上插件，安装器就在 `node_modules/bmad-method` 里，首次调用工具时自动把模块铺到 `$DSH_HOME/bmad-method` —— 不联网下载、不需要用户配任何路径。要换 BMAD 版本，在本仓库 `npm run update-bmad` 后发新版本，用户更新插件即完成更新。
+**BMAD 本体随插件携带**：运行时（`_bmad/` 的配置、脚本、7 个模块）直接放在包的 `bmad-home/` 里，装完插件就铺到 `$DSH_HOME/bmad-method`，**46 毫秒、不联网、不用点安装**；`bmad-method` 安装器则是普通依赖（`node_modules/bmad-method`），只在换版本或补外部模块时才动用。要换 BMAD 版本，在本仓库 `npm run update-bmad` + 重新生成 `bmad-home/` 后发新版本，用户更新插件即完成更新。
 
 ## 五条设计约定
 
@@ -230,25 +230,32 @@ BMAD 装在**全局主目录**，工作区不落 `_bmad/`。这些路径都由�
 
 ## 零配置自举
 
-**装完插件什么都不用做**。第一次调用任一 BMAD 工具时，插件会检查 `$DSH_HOME/bmad-method/_bmad/`：
+**装完插件什么都不用做，BMAD 已经在包里。** 第一次调用任一 BMAD 工具（或第一次打开设置卡片点「安装 BMAD」）时，插件会检查 `$DSH_HOME/bmad-method/_bmad/`：
 
-- 不存在 → 用插件**自带的**安装器把**全部 7 个未废弃模块**（`core` `bmm` `bmb` `cis` `tea` `gds` `bmad-loop`）装齐，首次约 66 秒（外部模块要 `git clone`）。
-- 已存在但版本与本插件携带的 `bmad-method` 不一致 → 自动刷新到同版本（等于"更新插件就更新了 BMAD"）。
-- 已存在但缺了某个模块的 `_bmad/<code>/` → 补装一次（包内 skill 覆盖全部 7 个模块，缺配置会让对应 skill 读不到模块级配置）。
-- 全齐且版本一致 → 直接跳过，零开销（实测 0.1 秒）。
+- 不存在 → 把包内 `bmad-home/_bmad/` 的运行时**直接铺过去**：7 个模块的配置、脚本、`custom/` 模板一次到位，**实测 46 毫秒**，不跑安装器、不联网。用户设置（用户名、语言、输出目录）在铺的时候写进每个模块的 config。
+- 已存在但缺了某个模块的 `_bmad/<code>/` → 同样用模板补齐。
+- 已存在但版本与本插件携带的 `bmad-method` 不一致 → 模板版本对不上就**退回跑安装器**刷新，免得旧模板铺到新版本预期的目录结构上。
+- 全齐且版本一致 → 直接跳过，零开销。
 
-外部模块的 `git clone` 失败（没网 / GitHub 不通）时自动降级为内置的 `core + bmm` 重试，`_bmad` 里少几个模块目录，但 **90 个 skill 仍在插件包里、照常可用**；网络恢复后跑一次 `bmad_update` 就补齐。
+也就是说：**装插件 = 装 BMAD**。只有需要装/更新到某个新版本、或补装外部模块时才会真正调用安装器。
 
 ```jsonc
-// 单独再跑一次全量安装（已齐时也可用来刷新）
+// 想强制走一次真正的安装器（比如换 BMAD 版本、补外部模块）
 { "dryRun": true, "userName": "张伟" }   // 先看命令
 { "userName": "张伟", "language": "简体中文" }
+```
 
-实测（v6.12.4，空目录 + 全局 `--directory`）：
+模板路线的实测（v6.12.4）：
 
-- 工作区**完全干净**，只多出 `_bmad-output`；没有 `_bmad/`、`.agent/`。安装器会铺 `.claude/skills`，插件把它清掉——skill 由插件包内的 provider 提供，不落任何用户目录。
+- `_bmad/` 约 345 KB / 31 文件（配置 + `scripts/*.py` + 每个模块的 `module-help.csv`），打进包毫无压力。
+- 主目录只多出 `_bmad/`，**不铺任何 IDE 目录**（安装器那条路会铺 `.claude/skills`，插件会清掉——skill 由插件包内的 provider 提供）。
+- `custom/` 是用户自己的定制：补装时先暂存再放回，不会被模板覆盖。
+
+安装器路线的实测（只有版本不一致或手动 `bmad_update` 才会走）：
+
+- 工作区**完全干净**，只多出 `_bmad-output`；没有 `_bmad/`、`.agent/`。
 - 模块文件落在 `--directory` 下，`_bmad-output` 也落在 `--directory` 下（工作区那个是插件建的）。
-- 非交互首次安装必须给 `--tools`，插件默认 `claude-code`（或沿用 `manifest.ides`）；取值表里没有 dsh，它只决定安装器往哪个目录铺 skill，铺完即迁走并清理。
+- 非交互首次安装必须给 `--tools`，插件默认 `claude-code`（或沿用 `manifest.ides`）；取值表里没有 dsh，它只决定安装器往哪个目录铺 skill，铺完即清理。
 - 外部模块靠 `git clone`，网络不通时整次安装失败 → 自动退到内置 `bmm` 重试，保证能用。
 - 不传 `userName` / `language` 时，安装器**保留已存配置**，不会覆盖。
 
@@ -309,6 +316,8 @@ index.js                 # apply(ctx, config)：注册三个工具 / 注入模�
 lib/patch.js             # cordis.patch.yml 按行编辑 + 原子写 + 回读校验 + 回滚
 lib/bmad.js              # _bmad/ 发现、全局主目录、自举、注册表、命令组装、安装器调用
 lib/skills.js            # SkillProvider：从包内 skills/ 提供 90 个 skill
+lib/template.js          # 包内 bmad-home/ 模板：铺运行时 + 写用户设置
+bmad-home/_bmad/         # BMAD 运行时本体（配置 + 脚本 + 7 个模块，345 KB）
 skills/                  # 90 个 skill（57 bmad-* + 33 gds-*）+ manifest.json 归属表
 lib/registry/            # bmad-modules.yaml 内置快照（依赖没落地时的离线兜底）
 fixtures/                # 冒烟测试用的 _bmad/ 项目与补丁文件
@@ -321,9 +330,8 @@ test/                    # node --test
 npm test        # node --test，12 个用例
 ```
 
-覆盖：工具注册、模块发现（已安装 + 可安装 + 内置 `core`/`bmm` + `deprecated`）、停用写 `disabled: true`、重复停用幂等、列表反映状态、重新启用移除该键、用户注释与既有条目不被破坏、`core` 不可停用、未装模块拒绝停用、写盘失败返回 `write-failed` 且原文件不变、更新命令组装（`--user-name` / 两个「简体中文」/`--output-folder _bmad-output`/`--no-shims`/`--modules` 含全部未废弃模块）、全局安装时工作区只有 `_bmad-output` 而无 `_bmad`/`.agent`、模块行的提示词注入、**全新环境自动自举**（用自带安装器装好、不留 `.claude`）、**模块停用后它的 skill 不再列出而 `core` 的仍在**、Config 三个字段全部 `.volatile()`。
-
-端到端实测通过：全新 `DSH_HOME` 下第一次调 `bmad_modules_list` 自动把 7 个模块装齐（实测 66 秒）、`.claude/skills` 被清掉、`core/config.yaml` 写入 `user_name: 张伟` 与 `简体中文`、工作区只有 `["_bmad-output"]`、provider 列出 90 个 skill；第二次调用版本一致直接跳过（0.1 秒）。测试里用 `DSH_BMAD_MINIMAL=1` 只装内置模块，保持离线可跑。
+覆盖：工具注册、模块发现（已安装 + 可安装 + 内置 `core`/`bmm` + `deprecated`）、停用写 `disabled: true`、重复停用幂等、列表反映状态、重新启用移除该键、用户注释与既有条目不被破坏、`core` 不可停用、未装模块拒绝停用、写盘失败返回 `write-failed` 且原文件不变、更新命令组装（`--user-name` / 两个「简体中文」/`--output-folder _bmad-output`/`--no-shims`/`--modules` 含全部未废弃模块）、全局安装时工作区只有 `_bmad-output` 而无 `_bmad`/`.agent`、**全新环境自动自举**、**包内模板 46 毫秒铺好 7 个模块并把用户名写进三处 config**、**模块停用后它的 skill 不再列出而 `core` 的仍在**、插件页模块开关接口（GET/POST + 跨站 403）、「安装 BMAD」接口、Config 三个字段全部 `.volatile()`。
+端到端实测通过：全新 `DSH_HOME` 下第一次调 `bmad_modules_list`，**46 毫秒**铺好 7 个模块（`viaTemplate: true`），`core/config.yaml` / `bmm/config.yaml` / `config.user.toml` 都写进了用户名与「简体中文」，主目录只有 `_bmad/`、工作区只有 `_bmad-output`，provider 列出 90 个 skill；第二次调用版本一致直接跳过。测试里用 `DSH_BMAD_MINIMAL=1` 只装内置模块，保持离线可跑。
 
 ## 已知边界
 
