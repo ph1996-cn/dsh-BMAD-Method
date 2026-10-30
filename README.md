@@ -58,7 +58,7 @@ dsh plugin add ./dsh-BMAD-Method
 
 ## 设置界面
 
-插件导出 `Config`（Schemastery），dsh 会把它投影成 JSON Schema 并渲染成插件详情页里的「BMAD 设置」卡片 —— 不需要写客户端代码。
+插件导出 `Config`（Schemastery），dsh 会把它投影成 JSON Schema 渲染成表单；表单下面那半截（模块开关）是 `client.js` 注册到 `plugins.bundle.config` 槽位里自己画的，因为 dsh 的设置表单只管标量字段，管不了「一行一个开关」这种结构。
 
 | 字段 | 默认 | 作用 |
 | --- | --- | --- |
@@ -79,7 +79,7 @@ dsh plugin add ./dsh-BMAD-Method
 浏览器半端调不了工具，所以插件自己开了一条同源接口：
 
 ```
-GET  /api/bmad-method/modules          → 模块列表 + 当前 enabled
+GET  /api/bmad-method/modules          → 模块列表 + 当前 enabled（第一次打开会顺手把 BMAD 铺好，不用任何按钮）
 POST /api/bmad-method/toggle           → { module, enabled }，写补丁后立即回读返回新状态
 ```
 
