@@ -290,14 +290,23 @@ npm test                # 顺手验一遍
 
 ### 更新插件本身：一条命令，不用卸载重装
 
-dsh 的 `install_bundle` 对已装的包会直接返回 `already-installed` 拒绝掉，**没有"更新"这个动作**。改代码后要么卸载重装，要么绕过去直接更新依赖 —— 后者一条命令：
+dsh 的 `install_bundle` 对已装的包会直接返回 `already-installed` 拒绝掉，**没有"更新"这个动作**。改代码后要么卸载重装，要么绕过去直接更新依赖 —— 一条命令：
 
 ```powershell
-cd "$env:USERPROFILE\.dsh\profiles\desktop"
-pnpm update dsh-BMAD-Method      # 重新解析 github: 依赖，拿最新 commit
+dsh plugin --profile desktop update dsh-BMAD-Method
 ```
 
-然后重启 dsh。（`pnpm add dsh-BMAD-Method@github:...` 不行 —— spec 没变，pnpm 按 lockfile 里的旧 commit 装，会静默什么都不干。）
+`dsh plugin` 就是把后面的参数**原样转发给 profile 目录里的 pnpm**（源码 `dsh/lib/bin.js:117` 的 command 描述原文就是这么写的），所以等价于：
+
+```powershell
+pnpm -C "$env:USERPROFILE\.dsh\profiles\desktop" update dsh-BMAD-Method
+```
+
+两种都行，`dsh plugin` 那条不用记路径。然后重启 dsh。
+
+⚠️ `--profile` 后面要写**你实际在用的那个 profile**。桌面版是 `desktop`；写成 `web` 会在 `~/.dsh/profiles/web` 里操作，跟桌面版读的 `desktop` 是两个互不相干的 profile。
+
+（`pnpm add dsh-BMAD-Method@github:...` 不行 —— spec 没变，pnpm 按 lockfile 里的旧 commit 装，会静默什么都不干。）
 
 如果只是想边改边试，用开发模式更省事：
 
