@@ -288,6 +288,20 @@ npm test                # 顺手验一遍
 
 插件自身走 dsh bundle 常规路径（`plugin_manager` 升级或 `npm update dsh-BMAD-Method`）。`package.json` 声明 `engines.dsh`（`>=0.2.0-rc.1 <0.3.0`）与 `engines.node`，装到不兼容的 dsh 上会被版本闸门拦下。
 
+### 兼容的 dsh 版本
+
+`engines.dsh` 是 `>=0.2.0-rc.1 <0.3.0`，整个 0.2.x 都在范围内（含 `0.2.1-rc.5`）。插件只依赖五处宿主契约，都在 `0.2.1-rc.5` 的发布包里逐条核对过：
+
+| 用到的契约 | 来自 | rc.5 里 |
+| --- | --- | --- |
+| `ctx.tools.register(definition)` | `@deepseek-ai/dsh-tools` | `lib/index.js:2974` |
+| `ctx.skills.registerProvider(create)`，宿主按 `provider.name` 注册 | `@deepseek-ai/dsh-skill` | `lib/index.js:147` / `:160` |
+| candidate 的 `provider` 必须等于 provider 名（否则整份清单抛错） | 同上 `validateCandidate` | `lib/index.js:452-462`，文案未变 |
+| `.volatile()` 字段才会进设置页（`volatileForm`） | `@deepseek-ai/dsh-settings` | `lib/index.js:122` |
+| `ctx.webServer.register({ kind: 'prefix', path, handler })` | 宿主 `webServer` 服务 | `dsh-host-open-in-app/lib/index.js:1271,1283` 照旧这么用 |
+
+插件**不用** dsh 的私有内部模块，也不 pin 任何 `@deepseek-ai/dsh-*` 依赖，所以 0.2.x 内的小版本升级不需要跟着改版本号。
+
 ### 更新插件本身：一条命令，不用卸载重装
 
 dsh 的 `install_bundle` 对已装的包会直接返回 `already-installed` 拒绝掉，**没有"更新"这个动作**。改代码后要么卸载重装，要么绕过去直接更新依赖 —— 一条命令：

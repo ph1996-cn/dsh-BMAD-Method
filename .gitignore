@@ -4,3 +4,7 @@ fixtures/project/_bmad-output/
 
 # 会话记忆工具的产物，不属于插件
 .memsearch/
+
+# 本机的 agent 上下文文件，不入库
+AGENTS.md
+CLAUDE.md
