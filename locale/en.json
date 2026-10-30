@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "dsh-BMAD-Method",
+    "description": "在 dsh 内管理 BMAD-Method 模块：列出已安装/可安装模块、开关模块、触发 BMAD 安装器更新。开关状态落在 profile 的 cordis.patch.yml。"
+  }
+}

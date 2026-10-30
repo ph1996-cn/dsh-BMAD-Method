@@ -1,0 +1,8 @@
+# fixture 用的 profile 补丁：保留用户注释与既有条目，验证写回不会破坏它们
+- id: ui-theme
+  name: "@deepseek-ai/dsh-client-ui-theme"
+  config:
+    preference: light
+# 这一行是用户自己的注释，必须原样保留
+- id: mcp-panel
+  disabled: true

@@ -1,0 +1,12 @@
+# 全部按 LF 存储：BMAD 的 SKILL.md / customize.toml 是 YAML frontmatter，
+# 混入 CRLF 会让 YAML 解析失败（历史上的 6 个 skill 就因此加载不出来）。
+* text=auto eol=lf
+
+# 二进制文件不做换行转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary

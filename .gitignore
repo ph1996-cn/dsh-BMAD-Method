@@ -1,0 +1,6 @@
+node_modules/
+fixtures/project/_bmad-output/
+*.log
+
+# 会话记忆工具的产物，不属于插件
+.memsearch/

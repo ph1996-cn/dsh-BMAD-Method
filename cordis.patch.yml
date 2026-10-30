@@ -1,0 +1,13 @@
+# dsh-BMAD-Method 的挂载行：只挂一个控制面实例。
+#
+# 它注册 bmad_modules_list / bmad_module_toggle / bmad_update 三个工具，
+# 并提供包内 90 个 BMAD skill（skill provider 会按模块开关过滤）。
+#
+# 模块不再单独开行：同一个包开多行时，dsh 插件页的行标题只能取包名，
+# 7 行会全叫 dsh-BMAD-Method，分不出谁是谁。模块开关放在插件详情页的
+# 「BMAD 设置」卡片里（每模块一行 + 开关），状态仍写在 profile 的
+# cordis.patch.yml（`- id: bmad-module-<code>` + `disabled: true`）。
+- insert:
+    - id: bmad-method
+      name: dsh-BMAD-Method
+      config: {}
