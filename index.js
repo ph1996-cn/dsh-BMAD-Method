@@ -41,7 +41,7 @@ import {
 } from './lib/patch.js'
 import { BmadSkillProvider, bundledSkillsDir } from './lib/skills.js'
 
-export const name = 'dsh-BMAD-Method'
+export const name = 'dsh-bmad-method'
 export const inject = ['tools', 'skills', 'webServer']
 
 /**

@@ -9,5 +9,5 @@
 # cordis.patch.yml（`- id: bmad-module-<code>` + `disabled: true`）。
 - insert:
     - id: bmad-method
-      name: dsh-BMAD-Method
+      name: dsh-bmad-method
       config: {}

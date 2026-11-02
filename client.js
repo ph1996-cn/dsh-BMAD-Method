@@ -6,11 +6,11 @@
  * 读写直接走 configForms 的 scope（scope.set / unset / subscribe / getSnapshot）。
  */
 window.__ModuleLoader__.load({
-  id: 'dsh-BMAD-Method',
+  id: 'dsh-bmad-method',
   factory: (require) => {
     const React = require('react')
 
-    const NS = 'dsh-BMAD-Method'
+    const NS = 'dsh-bmad-method'
     // Host 侧的 settings 命名空间就是 Loader 行 id；两种拼法都试，取真正 serve 的那个。
     const CANDIDATES = ['bmad-method', 'include:bmad-method']
 

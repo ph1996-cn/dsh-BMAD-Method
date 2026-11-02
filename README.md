@@ -45,11 +45,13 @@ dsh plugin add github:ph1996-cn/dsh-BMAD-Method
 
 桌面版更简单：**设置 → 插件 → 从 GitHub 安装**，填 `ph1996-cn/dsh-BMAD-Method`；或者在插件市场里搜 `BMAD`。
 
+> **包名和显示名不是同一个东西**：npm 包名是 `dsh-bmad-method`（npm 只收小写），仓库和界面上显示的是 `dsh-BMAD-Method`。从 0.1.x 升上来的要先把旧包卸掉——`dsh-BMAD-Method` 和 `dsh-bmad-method` 在 dsh 眼里是两个插件，两个都装着会同时加载两次。
+
 装完**重启一次 dsh**，插件才会被加载。
 
 ```jsonc
 // 想钉住某个版本，防止以后意外更新
-"dsh-BMAD-Method": "github:ph1996-cn/dsh-BMAD-Method#v0.1.1"
+"dsh-bmad-method": "github:ph1996-cn/dsh-BMAD-Method#v0.2.0"
 ```
 
 ---
@@ -117,7 +119,7 @@ dsh plugin add github:ph1996-cn/dsh-BMAD-Method
 **更新插件 = 更新 BMAD**，一条命令：
 
 ```bash
-dsh plugin --profile desktop update dsh-BMAD-Method
+dsh plugin --profile desktop update dsh-bmad-method
 ```
 
 `--profile` 换成你实际在用的那个（桌面版是 `desktop`）。更新完重启 dsh。
@@ -177,7 +179,7 @@ dsh plugin --profile desktop update dsh-BMAD-Method
 | 模块开关点了没反应 | 找不到 profile 补丁 | 卡片底部会写清原因；确认插件挂在某个 profile 上 |
 | 产出文件跑到系统临时目录 | 旧版本 bug | 更新到 `0.1.1` 及以上 |
 | skill 里报 `TOML file not found` | 旧版本占位符没展开 | 更新到 `0.1.1` 及以上 |
-| 更新完还是旧代码 | `dsh plugin add` 不更新已装包 | 用 `dsh plugin --profile desktop update dsh-BMAD-Method` |
+| 更新完还是旧代码 | `dsh plugin add` 不更新已装包 | 用 `dsh plugin --profile desktop update dsh-bmad-method` |
 | 外部模块装不上 | 安装器要 `git clone` 各模块仓库 | 确认能访问 GitHub；装不上会自动降级为内置模块，BMAD 仍可用 |
 
 还有个常见误会：BMAD 装在 `~/.dsh/bmad-method`（**全局**），不会在你的项目里建 `_bmad/`。你的项目里只会多出 `_bmad-output/` 这个产物目录。

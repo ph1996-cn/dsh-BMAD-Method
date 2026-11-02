@@ -460,7 +460,7 @@ test('运行期没有 DSH_PROFILE_DIR：从 ~/.dsh/profiles 里扫出挂着本�
   writeFileSync(join(profileDir, 'cordis.patch.yml'), readFileSync(FIXTURE_PATCH, 'utf8'))
   writeFileSync(
     join(profileDir, 'package.json'),
-    JSON.stringify({ dsh: { profile: { bundles: ['dsh-BMAD-Method'] } } }),
+    JSON.stringify({ dsh: { profile: { bundles: ['dsh-bmad-method'] } } }),
   )
   const saved = {
     DSH_HOME: process.env.DSH_HOME,
