@@ -219,12 +219,25 @@ lib/registry/         bmad-modules.yaml 内置快照（依赖没落地时的离�
 ### 测试
 
 ```bash
-npm test     # 16 个用例，0.7 秒
+npm test     # 17 个用例，1.5 秒
 ```
 
-用假 ctx 真跑 `apply()`，覆盖：工具注册、模块发现、开关读写、重复停用幂等、用户注释不被破坏、`core` 不可停用、写盘失败回滚、命令组装、全局安装不落工作区、全新环境自举、模板 46ms 铺好 7 个模块、模块停用后 skill 消失、卡片接口（含跨站 403）、`Config` 三个字段全部 `.volatile()`。
+用假 ctx 真跑 `apply()`，覆盖：工具注册、模块发现、开关读写、重复停用幂等、用户注释不被破坏、`core` 不可停用、写盘失败回滚、命令组装、全局安装不落工作区、全新环境自举、模板 46ms 铺好 7 个模块、模块停用后 skill 消失、卡片接口（含跨站 403）、`Config` 三个字段全部 `.volatile()`、`engines.dsh` 覆盖预发布段。
 
 > `.volatile()` 是必须的：dsh 的 `volatileForm()` 只把标了 `.volatile()` 的字段放进设置页，一个都没有的话整个条目会被丢掉，界面上就不会出现这张卡片。
+
+### 发版
+
+```bash
+npm version 0.1.3 --no-git-tag-version
+git commit -am "chore: 发布 v0.1.3"
+git tag v0.1.3                    # ← 不要加 -a
+git push origin main v0.1.3
+```
+
+**tag 必须是 lightweight（别用 `git tag -a`）**。annotated tag 在 `refs/tags/` 里的 SHA 是 tag 对象自己的哈希，不等于它指向的 commit；插件市场按 SHA 匹配 commit，annotated tag 永远配不上，会把版本显示成 `v<40位commit哈希>` 而不是 `v0.1.3`。
+
+`v0.1.0` ~ `v0.1.2` 历史上是 annotated tag（所以市场里显示成 `v64339e3dad...` 那样），不追改；**从下一个版本起用 lightweight**。
 
 ---
 
