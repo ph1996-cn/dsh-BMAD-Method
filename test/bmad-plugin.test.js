@@ -597,4 +597,12 @@ test('engines.dsh 必须显式覆盖 0.2.1 段，否则 semver 不认 0.2.1-rc.x
     /<\s*0\.2\.1\s/.test(range),
     `engines.dsh 需要把 0.2.0 段收在 <0.2.1 之前，再和 0.2.1 分支用 || 拼（当前：${range}）`,
   )
+
+  // 插件市场读 dsh.engines.dsh，dsh 本体读顶层 engines.dsh；两处必须同值，
+  // 否则市场牌子上写的兼容范围会和实际校验判得不一样。
+  assert.equal(
+    pkg.dsh?.engines?.dsh,
+    range,
+    "dsh.engines.dsh 必须与顶层 engines.dsh 完全一致",
+  )
 })
