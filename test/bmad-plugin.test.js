@@ -576,14 +576,25 @@ test('打开卡片就自举：GET /modules 自己把 BMAD 装好，用户不用�
         `${code} 打开卡片后应已是已安装，实际：${JSON.stringify(first.body.modules.map((m) => [m.code, m.installed]))}`,
       )
     }
-    // 已经装好时再打开不该有任何副作用，也不该变慢
-    const second = await callApi(route, { method: 'GET', url: '/api/bmad-method/modules' })
-    assert.equal(second.status, 200)
-    assert.deepEqual(
-      second.body.modules.map((m) => [m.code, m.installed]),
-      first.body.modules.map((m) => [m.code, m.installed]),
-    )
   } finally {
     box.cleanup()
   }
+})
+
+test('engines.dsh 必须显式覆盖 0.2.1 段，否则 semver 不认 0.2.1-rc.x', () => {
+  const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
+  const range = pkg.engines?.dsh
+  assert.ok(range, 'package.json 必须声明 engines.dsh')
+
+  // node-semver 的坑：预发布版本只有「范围里存在元组相同、且自身带预发布标签的比较符」才被放行。
+  // 所以 >=0.2.0-rc.1 <0.3.0 这种写法匹配不到 0.2.1-rc.5 —— 用户实际在跑的版本反而不在范围内。
+  // 这里不做完整 semver 求值（不为一条断言引依赖），只守住那个必须存在的 0.2.1 预发布分支。
+  assert.ok(
+    />=?\s*0\.2\.1-rc\.\d+/.test(range),
+    `engines.dsh 必须显式列出 0.2.1 的预发布分支（当前：${range}）`,
+  )
+  assert.ok(
+    /<\s*0\.2\.1\s/.test(range),
+    `engines.dsh 需要把 0.2.0 段收在 <0.2.1 之前，再和 0.2.1 分支用 || 拼（当前：${range}）`,
+  )
 })

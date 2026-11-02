@@ -1,6 +1,6 @@
 {
   "name": "dsh-BMAD-Method",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "BMAD-Method 受控桥接插件：在 dsh 内列出 / 开关 / 更新 BMAD 模块，模块开关状态写入 profile 的 cordis.patch.yml",
   "type": "module",
   "main": "index.js",
@@ -25,7 +25,7 @@
   ],
   "engines": {
     "node": "^22.19.0 || >=24",
-    "dsh": ">=0.2.0-rc.1 <0.3.0"
+    "dsh": ">=0.2.0-rc.1 <0.2.1 || >=0.2.1-rc.1 <0.3.0-0"
   },
   "dsh": {
     "bundle": {
