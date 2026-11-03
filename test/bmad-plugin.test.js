@@ -26,7 +26,10 @@ import { ensureInstalled, readInstalledModules } from '../lib/bmad.js'
 import { isModuleEnabled, moduleRows, resolvePatchPath } from '../lib/patch.js'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const FIXTURE_PROJECT = join(HERE, '..', 'fixtures', 'project')
+// 测试样本直接用发布模板的副本：两份 _bmad 结构本来就一样，没必要手工维护第二份
+const FIXTURE_ROOT = mkdtempSync(join(tmpdir(), 'dsh-BMAD-Method-fixture-'))
+const FIXTURE_PROJECT = join(FIXTURE_ROOT, 'project')
+cpSync(join(HERE, '..', 'bmad-home'), FIXTURE_PROJECT, { recursive: true })
 const FIXTURE_PATCH = join(HERE, '..', 'fixtures', 'cordis.patch.yml')
 const FIXTURE_COMMENT = '# 这一行是用户自己的注释，必须原样保留'
 
@@ -299,8 +302,9 @@ test('bmad_update dryRun 只组装命令：带用户名、语言固定简体中�
     }
     assert.ok(!all.includes('automator'), '已废弃模块不装')
     assert.deepEqual(
-      result.modules.sort(),
-      [['bmad-loop','0.13.1'],['bmb','2.2.2'],['bmm','6.12.4'],['cis','0.3.2'],['core','6.12.4'],['gds','0.7.2'],['tea','1.27.2']].map(([c,v]) => c + '@' + v),
+      // 外部模块的 config.yaml 里版本自带 v（安装器写的），比对时统一去掉
+      result.modules.map((m) => m.replace('@v', '@')).sort(),
+      ['bmad-loop@0.13.2','bmb@2.2.2','bmm@6.12.4','cis@0.3.2','core@6.12.4','gds@0.7.2','tea@1.27.2'].sort(),
       '报告的模块清单应反映已装 + 本次要装的全部模块',
     )
   } finally {
