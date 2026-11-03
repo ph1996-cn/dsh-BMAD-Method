@@ -237,8 +237,21 @@ test('全新环境：第一次调 list 就用自带安装器把 BMAD 装好，�
     const skillArg = reviewBody.match(/--skill (\S+)/)?.[1] ?? ''
     assert.ok(skillArg && !skillArg.includes('{'), `--skill 要展开成真路径，实际：${skillArg}`)
     assert.ok(
-      reviewBody.includes(`--project-root ${home.replace(/\\/g, '/')}`),
+      reviewBody.includes(`--project-root "${home.replace(/\\/g, '/')}"`),
       '--project-root 要给 BMAD 安装目录（脚本要拼 <root>/_bmad/）',
+    )
+    // bmad-build 用的是带引号写法：--project-root "{project-root}"，漏改会在工作区建出 _bmad/
+    const buildBody = await provider.get(
+      (await provider.list({})).candidates.find((c) => c.name === 'bmad-build'),
+      { cwd: emptyDir },
+    )
+    assert.ok(
+      buildBody.content.includes(`--project-root "${home.replace(/\\/g, '/')}"`),
+      '带引号的 --project-root 也必须指向 BMAD 安装目录，否则 render_skill.py 会在工作区建 _bmad/',
+    )
+    assert.ok(
+      !buildBody.content.includes(`--project-root "${emptyDir.replace(/\\/g, '/')}"`),
+      '工作区路径不能出现在 --project-root 后面',
     )
     // 传了工作区就必须展开成绝对路径：只给 `.' 时模型会自己猜，实测把产物写进了 %TEMP%
     const fakeCwd = 'D:/work/my-proj'
