@@ -533,6 +533,21 @@ test('包内自带 BMAD 运行时：全新机器秒装七个模块，用户名/�
   assert.match(readFileSync(join(bmad, 'core', 'config.yaml'), 'utf8'), /user_name:\s*李雷/)
   assert.match(readFileSync(join(bmad, 'bmm', 'config.yaml'), 'utf8'), /user_name:\s*李雷/)
   assert.match(readFileSync(join(bmad, 'config.user.toml'), 'utf8'), /user_name = "李雷"/)
+  // gds 与 bmm 都定义 planning_artifacts / implementation_artifacts / project_knowledge，
+  // BMAD 的 render_skill.py 会报 ambiguous config value 直接 HALT；这里按 bmm 优先消歧。
+  const centralToml = readFileSync(join(bmad, 'config.toml'), 'utf8')
+  const liveKeys = centralToml
+    .split(/\r?\n/)
+    .filter(
+      (line) =>
+        !/^\s*#/.test(line) &&
+        /^\s*(implementation_artifacts|planning_artifacts|project_knowledge)\s*=/.test(line),
+    )
+  assert.equal(liveKeys.length, 3, `同名键只该留一份，实际 ${liveKeys.length} 条`)
+  assert.ok(
+    centralToml.includes('# 与 modules.bmm 的 implementation_artifacts 重名'),
+    'gds 那几行应被注释掉，并写明为什么',
+  )
   assert.deepEqual(readdirSync(home), ['_bmad'], '主目录只该有 _bmad，不铺 IDE 目录')
 })
 
