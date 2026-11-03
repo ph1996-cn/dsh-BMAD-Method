@@ -1,6 +1,6 @@
 {
   "name": "dsh-bmad-method",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "BMAD-Method 受控桥接插件：在 dsh 内列出 / 开关 / 更新 BMAD 模块，模块开关状态写入 profile 的 cordis.patch.yml",
   "type": "module",
   "main": "index.js",
@@ -50,6 +50,14 @@
   "scripts": {
     "test": "node --test",
     "update-bmad": "npm install bmad-method@latest --save-exact"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ph1996-cn/dsh-BMAD-Method.git"
+  },
+  "homepage": "https://github.com/ph1996-cn/dsh-BMAD-Method#readme",
+  "bugs": {
+    "url": "https://github.com/ph1996-cn/dsh-BMAD-Method/issues"
   },
   "license": "MIT"
 }
