@@ -2,6 +2,8 @@
 
 把 [BMAD-Method](https://github.com/bmad-code-org/BMAD-METHOD) 整套装进 dsh 里。装完插件就能用，不用自己跑 `npx bmad-method install`。
 
+两份 README 并存：这份是简体中文，英文版见 [README.en.md](./README.en.md)。
+
 ![兼容 dsh](https://img.shields.io/badge/dsh-0.2.1--rc.1%20~%200.2.1--rc.5-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
@@ -233,10 +235,13 @@ lib/registry/         bmad-modules.yaml 内置快照（依赖没落地时的离�
 
 ### 换 BMAD 版本
 
-1. `npm install bmad-method@<新版本> --save-exact`
-2. 跑一次安装器，把新的 `_bmad/` 拷到 `bmad-home/_bmad/`（记得脱敏 `user_name`）
-3. 把新的 `.claude/skills`（或 `.agents/skills`）拷到 `skills/`，重新生成 `skills/manifest.json`
-4. `npm test`，`npm version patch`，推 tag
+```bash
+node scripts/sync-bmad.mjs            # 检查三方版本：0=已最新，10=有更新
+node scripts/sync-bmad.mjs --apply    # 有更新则重建 bmad-home/ 与 skills/
+node scripts/sync-bmad.mjs --publish  # 重建并自动发版（npm test 通过才发）
+```
+
+脚本做四件事：升 `bmad-method` 依赖 → 跑官方安装器铺临时目录 → 搬回旧快照的项目名 / 语言 / 用户名并覆盖两个快照目录 → 从 `skill-manifest.csv` 重生成 `skills/manifest.json`，最后 `npm test` 当门禁。
 
 模板版本和 `node_modules/bmad-method` 对不上时，插件会自动退回跑安装器，不会把旧结构铺到新版本上。
 
@@ -273,4 +278,8 @@ git push origin main v0.1.3
 
 ## License
 
-MIT
+本仓库自身的代码以 MIT 发布，见 [LICENSE](./LICENSE)。
+
+随包分发的 BMAD-Method 内容（`bmad-home/`、`skills/`）版权归 **BMad Code, LLC**，同样按 MIT 分发——版权行、上游仓库清单、以及我们改了什么，全部列在 [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md)。
+
+本插件是**非官方**社区项目，与 BMad Code, LLC 无隶属或背书关系。
