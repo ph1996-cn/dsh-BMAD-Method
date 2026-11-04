@@ -128,6 +128,34 @@ dsh plugin --profile desktop update dsh-bmad-method
 
 ---
 
+## 卸载
+
+在插件页点「卸载」即可。dsh 会删掉 npm 包和 profile 里的声明，但**不会**动这一处：
+
+| 位置 | 是什么 | 卸载后 |
+| --- | --- | --- |
+| `~/.dsh/bmad-method/` | BMAD 运行时 + 你的 `custom/` 定制 | **留着**（约 34 KB） |
+
+这是故意不删的：里面有你自己的 `custom/` 覆盖文件，删插件顺手删掉它，重装就全丢了。而且 dsh 的卸载流程不执行插件代码（只 `pnpm remove` + 改 profile），插件没有机会自己去清。
+
+想彻底干净，手动删：
+
+```powershell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.dsh\bmad-method"
+```
+
+**卸载前想留定制**，先把它拷出来：
+
+```powershell
+Copy-Item -Recurse "$env:USERPROFILE\.dsh\bmad-method\_bmad\custom" "$env:USERPROFILE\Desktop\bmad-custom-backup"
+```
+
+> 那 34 KB 里只有会被写入的配置（`config.toml`、7 个模块的 `config.yaml`、`custom/`、`render/`）。`scripts/` 与 `_config/` 这两大块（合计 309 KB）是指向插件包内的**目录联接**，不占你的空间，插件升级时会自动跟到新版；删掉 `~/.dsh/bmad-method` 时也只删链接，不会碰到插件包里的文件。
+>
+> 极少数情况下建不了链接（插件装在别的盘、非 NTFS、组策略禁用重解析点），会自动退回复制那 309 KB —— 功能一样，只是多占点空间。
+
+---
+
 ## 兼容的 dsh 版本
 
 | 项 | 值 |
@@ -194,12 +222,12 @@ dsh plugin --profile desktop update dsh-bmad-method
 index.js              插件入口：三个工具 + 卡片接口
 client.js             浏览器半端：设置卡片 + 模块开关
 cordis.patch.yml      包内补丁，只挂一行控制面
-bmad-home/_bmad/      BMAD 运行时模板（345 KB / 31 文件），首次打开拷出去
+bmad-home/_bmad/      BMAD 运行时模板（345 KB / 31 文件）：配置拷出去，scripts/_config 建链接
 skills/               90 个 skill + manifest.json（skill → 模块归属表）
 lib/bmad.js           BMAD 发现、安装器调用、运行时铺装
 lib/patch.js          profile 补丁的按行读写（不吃掉用户注释）
 lib/skills.js         SkillProvider 实现
-lib/template.js       模板铺装与配置改写
+lib/template.js       模板铺装（junction + 配置改写）、跨模块同名键消歧
 lib/registry/         bmad-modules.yaml 内置快照（依赖没落地时的离线兜底）
 ```
 

@@ -11,6 +11,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  lstatSync,
   readFileSync,
   readdirSync,
   rmSync,
@@ -548,6 +549,12 @@ test('包内自带 BMAD 运行时：全新机器秒装七个模块，用户名/�
     centralToml.includes('# 与 modules.bmm 的 implementation_artifacts 重名'),
     'gds 那几行应被注释掉，并写明为什么',
   )
+  // scripts/_config 是只读大件（合计 309K）：用 junction 指回包内，不往用户目录复制副本，
+  // 升级插件时 node_modules 被换掉、链接自动跟到新版。
+  assert.equal(lstatSync(join(bmad, 'scripts')).isSymbolicLink(), true, 'scripts 应是 junction，不该整份复制')
+  assert.equal(lstatSync(join(bmad, '_config')).isSymbolicLink(), true, '_config 应是 junction，不该整份复制')
+  // 会被写入用户答案的配置必须是真文件
+  assert.equal(lstatSync(join(bmad, 'config.toml')).isFile(), true, 'config.toml 要是真文件')
   assert.deepEqual(readdirSync(home), ['_bmad'], '主目录只该有 _bmad，不铺 IDE 目录')
 })
 
