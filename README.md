@@ -4,7 +4,7 @@
 
 两份 README 并存：这份是简体中文，英文版见 [README.en.md](./README.en.md)。
 
-![兼容 dsh](https://img.shields.io/badge/dsh-0.2.1--rc.1%20~%200.2.1--rc.5-blue) ![license](https://img.shields.io/badge/license-MIT-green)
+![兼容 dsh](https://img.shields.io/badge/dsh-0.2.0--rc.1%20~%200.2.2--rc.1-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -41,20 +41,67 @@ BMAD-Method 是一套「先想清楚，再写代码」的开发方法。它把�
 
 ## 安装
 
+### 前提
+
+- dsh **0.2.x**（`>=0.2.0-rc.1 <0.2.1 || >=0.2.1-rc.1 <0.2.2 || >=0.2.2-rc.1 <0.3.0-0`，`0.2.1-rc.x`、`0.2.2-rc.x` 这类预发布版也算在内）
+- 装完要**重启一次 dsh**，插件才会被加载
+
+### 方式一：插件市场（最省事）
+
+1. **设置 → 插件 → 市场**
+2. 搜 `BMAD`，认准作者 `ph1996-cn`
+3. 点安装，然后**重启 dsh**
+
+### 方式二：桌面版从 GitHub 装
+
+1. **设置 → 插件**
+2. 点 **从 GitHub 安装**（有的版本叫「添加插件」）
+3. 填 `ph1996-cn/dsh-BMAD-Method`
+4. 确认，等它下载完，然后**重启 dsh**
+
+### 方式三：命令行
+
 ```bash
-dsh plugin add github:ph1996-cn/dsh-BMAD-Method
+# 从 GitHub 装
+dsh plugin --profile desktop add github:ph1996-cn/dsh-BMAD-Method
+
+# 或者从 npm 装（同一个包，两条路等价）
+dsh plugin --profile desktop add dsh-bmad-method
 ```
 
-桌面版更简单：**设置 → 插件 → 从 GitHub 安装**，填 `ph1996-cn/dsh-BMAD-Method`；或者在插件市场里搜 `BMAD`。
+`--profile` 填你实际在用的那个 —— 桌面版是 `desktop`。装完重启 dsh。
 
-> **包名和显示名不是同一个东西**：npm 包名是 `dsh-bmad-method`（npm 只收小写），仓库和界面上显示的是 `dsh-BMAD-Method`。从 0.1.x 升上来的要先把旧包卸掉——`dsh-BMAD-Method` 和 `dsh-bmad-method` 在 dsh 眼里是两个插件，两个都装着会同时加载两次。
+### 怎么确认装好了
 
-装完**重启一次 dsh**，插件才会被加载。
+重启后打开 **设置 → 插件 → dsh-BMAD-Method**，看到这三块就对了：
+
+| 块 | 应该看到 |
+| --- | --- |
+| 设置 | 用户名、语言、工作区输出目录，三个输入框 |
+| 模块开关 | 7 个模块各一行（`core` 不在这里，它是地基，关不掉） |
+| 包含的组件 | 只有 1 行，就是插件自己 |
+
+第一次打开这张卡片时，插件会自动把 BMAD 运行时铺到 `~/.dsh/bmad-method`（46 毫秒，不联网），不用点任何按钮、不用跑任何命令。
+
+### 钉住版本
+
+不想被以后的更新带走，把版本写进 profile 的 `dependencies`：
 
 ```jsonc
-// 想钉住某个版本，防止以后意外更新
-"dsh-bmad-method": "github:ph1996-cn/dsh-BMAD-Method#v0.2.0"
+// 从 GitHub 装的
+"dsh-bmad-method": "github:ph1996-cn/dsh-BMAD-Method#v0.2.4"
+
+// 从 npm 装的
+"dsh-bmad-method": "^0.2.4"
 ```
+
+> npm 上目前稳定可用的是 `0.2.3`（`0.2.4` 还在上架队列里）。急着钉版本就把上面的 `0.2.4` 换成 `0.2.3`。
+
+### 包名和显示名不是同一个东西
+
+npm 包名是 `dsh-bmad-method`（npm 只收小写），仓库和界面上显示的是 `dsh-BMAD-Method`。
+
+**从 0.1.x 升级**要先卸旧包 —— `dsh-BMAD-Method` 和 `dsh-bmad-method` 在 dsh 眼里是两个插件，两个都装着会同时加载两次。
 
 ---
 
@@ -162,17 +209,17 @@ Copy-Item -Recurse "$env:USERPROFILE\.dsh\bmad-method\_bmad\custom" "$env:USERPR
 
 | 项 | 值 |
 | --- | --- |
-| **dsh** | `>=0.2.0-rc.1 <0.2.1 \|\| >=0.2.1-rc.1 <0.3.0-0`（整个 0.2.x，含预发布） |
-| **实测跑通** | `0.2.1-rc.3`、`0.2.1-rc.5` |
+| **dsh** | `>=0.2.0-rc.1 <0.2.1 \|\| >=0.2.1-rc.1 <0.2.2 \|\| >=0.2.2-rc.1 <0.3.0-0`（整个 0.2.x，含预发布） |
+| **实测跑通** | `0.2.1-rc.3`、`0.2.1-rc.5`、`0.2.2-rc.1` |
 | **Node** | `^22.19.0 \|\| >=24` |
 
 声明在 `package.json` 的 `engines` 里：
 
 ```json
-"engines": { "node": "^22.19.0 || >=24", "dsh": ">=0.2.0-rc.1 <0.2.1 || >=0.2.1-rc.1 <0.3.0-0" }
+"engines": { "node": "^22.19.0 || >=24", "dsh": ">=0.2.0-rc.1 <0.2.1 || >=0.2.1-rc.1 <0.2.2 || >=0.2.2-rc.1 <0.3.0-0" }
 ```
 
-> **为什么写得这么绕**：node-semver 有个坑 —— 预发布版本（`0.2.1-rc.5`）只有范围里存在一个**元组完全相同且带预发布标签**的比较符时才被放行。看起来更简洁的 `>=0.2.0-rc.1 <0.3.0` 里只有 `0.2.0` 和 `0.3.0` 两个元组，**匹配不到 `0.2.1-rc.5`**。所以必须显式列出 `0.2.1` 这一段。
+> **为什么写得这么绕**：node-semver 有个坑 —— 预发布版本（`0.2.1-rc.5`、`0.2.2-rc.1`）只有范围里存在一个**元组完全相同且带预发布标签**的比较符时才被放行。看起来更简洁的 `>=0.2.0-rc.1 <0.3.0` 里只有 `0.2.0` 和 `0.3.0` 两个元组，**匹配不到 `0.2.1-rc.5`**。所以 `0.2.1`、`0.2.2` 每一段都得显式列出来。
 
 插件只依赖 dsh 的**公开契约**，不碰私有内部模块，也不 pin 任何 `@deepseek-ai/dsh-*` 依赖：
 
@@ -184,7 +231,7 @@ Copy-Item -Recurse "$env:USERPROFILE\.dsh\bmad-method\_bmad\custom" "$env:USERPR
 | 浏览器半端 | `dsh.client` + `ctx.slots.inject()` |
 | 卡片接口 | `ctx.webServer.register({ kind: 'prefix' })` |
 
-这五处都在 `0.2.1-rc.5` 的发布包里逐条核对过，签名没变。所以 0.2.x 内的小版本升级不需要跟着改版本号。
+这五处在 `0.2.1-rc.5` 与 `0.2.2-rc.1` 的发布包里都逐条核对过，签名没变。所以 0.2.x 内的小版本升级不需要跟着改版本号。
 
 ---
 
@@ -209,7 +256,7 @@ Copy-Item -Recurse "$env:USERPROFILE\.dsh\bmad-method\_bmad\custom" "$env:USERPR
 | 模块开关点了没反应 | 找不到 profile 补丁 | 卡片底部会写清原因；确认插件挂在某个 profile 上 |
 | 产出文件跑到系统临时目录 | 旧版本 bug | 更新到 `0.1.1` 及以上 |
 | skill 里报 `TOML file not found` | 旧版本占位符没展开 | 更新到 `0.1.1` 及以上 |
-| 更新完还是旧代码 | `dsh plugin add` 不更新已装包 | 用 `dsh plugin --profile desktop update dsh-bmad-method` |
+| 更新完还是旧代码 | `add` 不会更新已装包，只会在缺的时候装 | 用 `dsh plugin --profile desktop update dsh-bmad-method` |
 | 外部模块装不上 | 安装器要 `git clone` 各模块仓库 | 确认能访问 GitHub；装不上会自动降级为内置模块，BMAD 仍可用 |
 
 还有个常见误会：BMAD 装在 `~/.dsh/bmad-method`（**全局**），不会在你的项目里建 `_bmad/`。你的项目里只会多出 `_bmad-output/` 这个产物目录。

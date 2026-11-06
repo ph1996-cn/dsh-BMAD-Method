@@ -549,6 +549,24 @@ test('包内自带 BMAD 运行时：全新机器秒装七个模块，用户名/�
     centralToml.includes('# 与 modules.bmm 的 implementation_artifacts 重名'),
     'gds 那几行应被注释掉，并写明为什么',
   )
+  // 同一个坑在各模块自己的 config.yaml 里也存在：render_skill.py 是扫整棵 _bmad/ 找同名键，
+  // 只看 config.toml 不够。gds/config.yaml 那三行也必须注释掉，否则 /bmad-build 第一行就 HALT。
+  const gdsYaml = readFileSync(join(bmad, 'gds', 'config.yaml'), 'utf8')
+  const liveGdsKeys = gdsYaml
+    .split(/\r?\n/)
+    .filter(
+      (line) =>
+        !/^\s*#/.test(line) &&
+        /^\s*(implementation_artifacts|planning_artifacts|project_knowledge)\s*:/.test(line),
+    )
+  assert.equal(liveGdsKeys.length, 0, `gds/config.yaml 的同名键必须全部注释，实际还剩 ${liveGdsKeys.length} 条`)
+  assert.match(readFileSync(join(bmad, 'bmm', 'config.yaml'), 'utf8'), /^implementation_artifacts:/m, 'bmm 的那份要留着')
+  // 产物路径不能带 {project-root}：render_skill.py 会拿 --project-root（我们传的是 BMAD 主目录）
+  // 去替换，于是产物全落到主目录。留相对路径，模型按工作区解析才对。
+  const centralTomlAfter = readFileSync(join(bmad, 'config.toml'), 'utf8')
+  assert.doesNotMatch(centralTomlAfter, /\{project-root\}\/_bmad-output/, 'config.toml 的产物路径不该再带 {project-root}')
+  assert.match(centralTomlAfter, /implementation_artifacts\s*=\s*"_bmad-output\/implementation-artifacts"/, '产物路径应留成相对工作区的形式')
+  assert.match(centralTomlAfter, /bmad_builder_output_folder\s*=\s*"_bmad-output\/skills"/, 'skills/ 类产物要挪到 _bmad-output/skills，不能写工作区的 skills/')
   // scripts/_config 是只读大件（合计 309K）：用 junction 指回包内，不往用户目录复制副本，
   // 升级插件时 node_modules 被换掉、链接自动跟到新版。
   assert.equal(lstatSync(join(bmad, 'scripts')).isSymbolicLink(), true, 'scripts 应是 junction，不该整份复制')
@@ -620,21 +638,23 @@ test('打开卡片就自举：GET /modules 自己把 BMAD 装好，用户不用�
   }
 })
 
-test('engines.dsh 必须显式覆盖 0.2.1 段，否则 semver 不认 0.2.1-rc.x', () => {
+test('engines.dsh 每个 0.2.x 段都要有预发布分支，否则 semver 不认 0.2.x-rc.y', () => {
   const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'))
   const range = pkg.engines?.dsh
   assert.ok(range, 'package.json 必须声明 engines.dsh')
 
   // node-semver 的坑：预发布版本只有「范围里存在元组相同、且自身带预发布标签的比较符」才被放行。
-  // 所以 >=0.2.0-rc.1 <0.3.0 这种写法匹配不到 0.2.1-rc.5 —— 用户实际在跑的版本反而不在范围内。
-  // 这里不做完整 semver 求值（不为一条断言引依赖），只守住那个必须存在的 0.2.1 预发布分支。
+  // 所以 >=0.2.0-rc.1 <0.3.0 这种写法匹配不到 0.2.1-rc.5 / 0.2.2-rc.1 —— 用户实际在跑的版本反而不在范围内。
+  // 这里不做完整 semver 求值（不为一条断言引依赖），只守住「每段都得有预发布分支」这个不变量。
+  for (const minor of ['0.2.1', '0.2.2']) {
+    assert.ok(
+      new RegExp(`>=?\\s*${minor.replace(/\./g, '\\.')}-rc\\.\\d+`).test(range),
+      `engines.dsh 必须显式列出 ${minor} 的预发布分支（当前：${range}）`,
+    )
+  }
   assert.ok(
-    />=?\s*0\.2\.1-rc\.\d+/.test(range),
-    `engines.dsh 必须显式列出 0.2.1 的预发布分支（当前：${range}）`,
-  )
-  assert.ok(
-    /<\s*0\.2\.1\s/.test(range),
-    `engines.dsh 需要把 0.2.0 段收在 <0.2.1 之前，再和 0.2.1 分支用 || 拼（当前：${range}）`,
+    /<\s*0\.2\.2\s/.test(range),
+    `engines.dsh 需要把 0.2.1 段收在 <0.2.2 之前，再和 0.2.2 分支用 || 拼（当前：${range}）`,
   )
 
   // 插件市场读 dsh.engines.dsh，dsh 本体读顶层 engines.dsh；两处必须同值，

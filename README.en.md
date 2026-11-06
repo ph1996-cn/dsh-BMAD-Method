@@ -4,7 +4,7 @@ Ships the whole of [BMAD-Method](https://github.com/bmad-code-org/BMAD-METHOD) i
 
 Both READMEs live side by side: this one is English, [README.md](./README.md) is 简体中文.
 
-![dsh](https://img.shields.io/badge/dsh-0.2.1--rc.1%20~%200.2.1--rc.5-blue) ![license](https://img.shields.io/badge/license-MIT-green)
+![dsh](https://img.shields.io/badge/dsh-0.2.0--rc.1%20~%200.2.2--rc.1-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -41,20 +41,67 @@ Typing `/bmad-` lists all 90.
 
 ## Install
 
+### Requirements
+
+- dsh **0.2.x** (`>=0.2.0-rc.1 <0.2.1 || >=0.2.1-rc.1 <0.2.2 || >=0.2.2-rc.1 <0.3.0-0`, prereleases like `0.2.1-rc.x` and `0.2.2-rc.x` included)
+- **Restart dsh once** afterwards, or the plugin will not load
+
+### Option 1: plugin marketplace (easiest)
+
+1. **Settings → Plugins → Marketplace**
+2. Search `BMAD`, pick the one by `ph1996-cn`
+3. Install, then **restart dsh**
+
+### Option 2: install from GitHub (desktop)
+
+1. **Settings → Plugins**
+2. Click **Install from GitHub** (some versions label it "Add plugin")
+3. Enter `ph1996-cn/dsh-BMAD-Method`
+4. Confirm, wait for the download, then **restart dsh**
+
+### Option 3: command line
+
 ```bash
-dsh plugin add github:ph1996-cn/dsh-BMAD-Method
+# from GitHub
+dsh plugin --profile desktop add github:ph1996-cn/dsh-BMAD-Method
+
+# or from npm (same package, either route works)
+dsh plugin --profile desktop add dsh-bmad-method
 ```
 
-On the desktop app it is simpler: **Settings → Plugins → Install from GitHub**, enter `ph1996-cn/dsh-BMAD-Method`; or search `BMAD` in the plugin marketplace.
+`--profile` is the profile you actually use — `desktop` on the desktop app. Restart dsh afterwards.
 
-> **The package name and the display name differ**: the npm package is `dsh-bmad-method` (npm only accepts lowercase), while the repo and the UI show `dsh-BMAD-Method`. Upgrading from 0.1.x requires uninstalling the old package first — `dsh-BMAD-Method` and `dsh-bmad-method` are two different plugins to dsh, and having both loads everything twice.
+### Checking it worked
 
-**Restart dsh once** after installing, or the plugin will not load.
+Open **Settings → Plugins → dsh-BMAD-Method**. Three blocks mean you are good:
+
+| Block | What you should see |
+| --- | --- |
+| Settings | User name, language, workspace output folder — three inputs |
+| Module switches | One row per module, 7 of them (`core` is absent: it is the foundation and cannot be turned off) |
+| Included components | Exactly one row, the plugin itself |
+
+The first time you open this card the plugin lays the BMAD runtime down into `~/.dsh/bmad-method` (46 ms, offline) — no button to press, no command to run.
+
+### Pinning a version
+
+To stop updates from moving you, pin it in the profile's `dependencies`:
 
 ```jsonc
-// pin a version so it cannot drift
-"dsh-bmad-method": "github:ph1996-cn/dsh-BMAD-Method#v0.2.0"
+// installed from GitHub
+"dsh-bmad-method": "github:ph1996-cn/dsh-BMAD-Method#v0.2.4"
+
+// installed from npm
+"dsh-bmad-method": "^0.2.4"
 ```
+
+> `0.2.3` is the latest stable on npm right now (`0.2.4` is still in the publish queue). Swap `0.2.4` for `0.2.3` if you need it pinned immediately.
+
+### Package name vs display name
+
+The npm package is `dsh-bmad-method` (npm only accepts lowercase), while the repo and the UI show `dsh-BMAD-Method`.
+
+**Upgrading from 0.1.x** requires uninstalling the old package first — `dsh-BMAD-Method` and `dsh-bmad-method` are two different plugins to dsh, and having both loads everything twice.
 
 ---
 
@@ -162,17 +209,17 @@ Copy-Item -Recurse "$env:USERPROFILE\.dsh\bmad-method\_bmad\custom" "$env:USERPR
 
 | Item | Value |
 | --- | --- |
-| **dsh** | `>=0.2.0-rc.1 <0.2.1 \|\| >=0.2.1-rc.1 <0.3.0-0` (all of 0.2.x, prereleases included) |
-| **Tested on** | `0.2.1-rc.3`, `0.2.1-rc.5` |
+| **dsh** | `>=0.2.0-rc.1 <0.2.1 \|\| >=0.2.1-rc.1 <0.2.2 \|\| >=0.2.2-rc.1 <0.3.0-0` (all of 0.2.x, prereleases included) |
+| **Tested on** | `0.2.1-rc.3`, `0.2.1-rc.5`, `0.2.2-rc.1` |
 | **Node** | `^22.19.0 \|\| >=24` |
 
 Declared in `package.json`:
 
 ```json
-"engines": { "node": "^22.19.0 || >=24", "dsh": ">=0.2.0-rc.1 <0.2.1 || >=0.2.1-rc.1 <0.3.0-0" }
+"engines": { "node": "^22.19.0 || >=24", "dsh": ">=0.2.0-rc.1 <0.2.1 || >=0.2.1-rc.1 <0.2.2 || >=0.2.2-rc.1 <0.3.0-0" }
 ```
 
-> **Why such a convoluted range**: node-semver only admits a prerelease version (`0.2.1-rc.5`) when the range contains a comparator with the *same tuple* carrying its own prerelease tag. The prettier `>=0.2.0-rc.1 <0.3.0` only mentions the tuples `0.2.0` and `0.3.0`, so it **does not match `0.2.1-rc.5`**. The `0.2.1` segment has to be spelled out.
+> **Why such a convoluted range**: node-semver only admits a prerelease version (`0.2.1-rc.5`, `0.2.2-rc.1`) when the range contains a comparator with the *same tuple* carrying its own prerelease tag. The prettier `>=0.2.0-rc.1 <0.3.0` only mentions the tuples `0.2.0` and `0.3.0`, so it **does not match `0.2.1-rc.5`**. Every `0.2.x` segment has to be spelled out.
 
 The plugin relies only on dsh's **public contracts**, touches no private internals, and pins no `@deepseek-ai/dsh-*` dependency:
 
@@ -184,7 +231,7 @@ The plugin relies only on dsh's **public contracts**, touches no private interna
 | Browser half | `dsh.client` + `ctx.slots.inject()` |
 | Card API | `ctx.webServer.register({ kind: 'prefix' })` |
 
-All five were checked line by line against the `0.2.1-rc.5` publish; none of the signatures moved. Patch releases inside 0.2.x therefore need no version bump here.
+All five were checked line by line against both the `0.2.1-rc.5` and `0.2.2-rc.1` publishes; none of the signatures moved. Patch releases inside 0.2.x therefore need no version bump here.
 
 ---
 
@@ -209,7 +256,7 @@ You rarely need `bmad_update` — the runtime travels with the plugin. Two cases
 | Module switch does nothing | Profile patch not found | The card footer states the reason; check the plugin is installed in a profile |
 | Artifacts land in the system temp dir | Bug in an old version | Update to `0.1.1` or later |
 | Skill reports `TOML file not found` | Placeholders not expanded in an old version | Update to `0.1.1` or later |
-| Still old code after updating | `dsh plugin add` does not update an installed package | Use `dsh plugin --profile desktop update dsh-bmad-method` |
+| Still old code after updating | `add` never updates an installed package, it only installs when missing | Use `dsh plugin --profile desktop update dsh-bmad-method` |
 | External module fails to install | The installer has to `git clone` each module repo | Make sure GitHub is reachable; a failure degrades to the built-in module and BMAD still works |
 
 One common misunderstanding: BMAD lives in `~/.dsh/bmad-method` (**global**) and never creates `_bmad/` inside your project. The only thing that appears in your project is the `_bmad-output/` artifact folder.
